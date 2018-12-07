@@ -25,11 +25,13 @@ Metadata:
           - AWSAccessKeySecret
           - KeyPairName
           - WSO2InstanceType
+          - BastionInstanceType
           - OperatingSystem
       - Label:
           default: Network Configuration
         Parameters:
           - CertificateName
+          - WSO2ISLoadBalancerScheme
       - Label:
           default: Database Configuration
         Parameters:
@@ -79,9 +81,13 @@ Metadata:
       WUMPassword:
         default: Password
       WSO2InstanceType:
-        default: Instance Type
+        default: WSO2 IS Instance Type
+      BastionInstanceType:
+        default: Bastion Instance Type
       OperatingSystem:
         default: OS Version
+      WSO2ISLoadBalancerScheme:
+        default: Load Balancer Scheme
 
 Resources:
   # networking configurations
@@ -327,7 +333,7 @@ Resources:
         - WSO2ISAMIRegionMap
         - !Ref 'AWS::Region'
         - Ubuntu1804
-      InstanceType: t2.micro
+      InstanceType: !Ref BastionInstanceType
       KeyName: !Ref KeyPairName
       Monitoring: 'false'
       Tags:
@@ -349,7 +355,7 @@ Resources:
         - WSO2PuppetMasterRegionMap
         - !Ref 'AWS::Region'
         - Ubuntu1804
-      InstanceType: !Ref WSO2InstanceType
+      InstanceType: 't2.micro'
       KeyName: !Ref KeyPairName
       Monitoring: 'false'
       Tags:
@@ -766,7 +772,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: IS
-      Scheme: internet-facing
+      Scheme: !Ref WSO2ISLoadBalancerScheme
       Subnets:
         - !Ref WSO2ISPublicSubnet1
         - !Ref WSO2ISPublicSubnet2
@@ -880,6 +886,22 @@ Parameters:
       - m3.xlarge
       - m3.2xlarge
       - m4.large
+      - c5.large
+    ConstraintDescription: Must be a valid EC2 instance type
+  BastionInstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
     ConstraintDescription: Must be a valid EC2 instance type
   CustomUserData:
     Type: String
@@ -942,6 +964,14 @@ Parameters:
   ElasticSearchEndpoint:
     Type: String
     Default: ""
+  WSO2ISLoadBalancerScheme:
+    Description: Scheme type for the Load Balancer. [Use "internal" for a private ALB]
+    Type: String
+    Default: internet-facing
+    AllowedValues:
+      - internet-facing
+      - internal
+    ConstraintDescription: Must be a valid ALB scheme type
 Mappings:
   WSO2PuppetMasterRegionMap:
     ap-southeast-2:
