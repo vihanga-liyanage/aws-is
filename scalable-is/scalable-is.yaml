@@ -902,6 +902,8 @@ Parameters:
       - m3.xlarge
       - m3.2xlarge
       - m4.large
+      - c5.large
+      - c5.xlarge
     ConstraintDescription: Must be a valid EC2 instance type
   CustomUserData:
     Type: String
